@@ -27,7 +27,7 @@ int fh_rawsend_setup(void);
 
 void fh_rawsend_cleanup(void);
 
-int fh_rawsend_handle(struct sockaddr_ll *sll, uint8_t *pkt_data, int pkt_len,
-                      int *modified);
+int fh_rawsend_handle(struct sockaddr_ll *sll, uint32_t oifindex,
+                      uint8_t *pkt_data, int pkt_len, int *modified);
 
 #endif /* FH_RAWSEND_H */

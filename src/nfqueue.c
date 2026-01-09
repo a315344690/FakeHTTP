@@ -98,7 +98,7 @@ static int callback(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
         memset(sll.sll_addr, 0, sizeof(sll.sll_addr));
     }
 
-    verdict = fh_rawsend_handle(&sll, pkt_data, pkt_len, &modified);
+    verdict = fh_rawsend_handle(&sll, oifindex, pkt_data, pkt_len, &modified);
     if (verdict < 0) {
         EE(T(fh_rawsend_handle));
         goto ret_accept;
