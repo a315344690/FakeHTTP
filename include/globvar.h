@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "filter.h"
 #include "payload.h"
 
 struct fh_context {
@@ -48,6 +49,9 @@ struct fh_context {
     /* -x */ uint32_t fwmask;
     /* -y */ int dynamic_pct;
     /* -z */ int use_iptables;
+    /* -o */ const char **out_iface_name;
+    /* -o */ uint32_t *out_iface_idx;
+    /* -c */ struct fh_cidr *cidrs;
 };
 
 extern struct fh_context g_ctx;

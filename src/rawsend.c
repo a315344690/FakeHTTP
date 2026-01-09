@@ -33,6 +33,7 @@
 #include <linux/netfilter.h>
 #include <libnetfilter_queue/libnetfilter_queue_tcp.h>
 
+#include "filter.h"
 #include "globvar.h"
 #include "ipv4pkt.h"
 #include "ipv6pkt.h"
@@ -317,8 +318,8 @@ void fh_rawsend_cleanup(void)
 }
 
 
-int fh_rawsend_handle(struct sockaddr_ll *sll, uint8_t *pkt_data, int pkt_len,
-                      int *modified)
+int fh_rawsend_handle(struct sockaddr_ll *sll, uint32_t oifindex,
+                      uint8_t *pkt_data, int pkt_len, int *modified)
 {
     uint32_t seq_new, ack_new;
     uint16_t ethertype;
@@ -353,6 +354,11 @@ int fh_rawsend_handle(struct sockaddr_ll *sll, uint8_t *pkt_data, int pkt_len,
     } else {
         E("ERROR: unknown ethertype 0x%04x");
         return -1;
+    }
+
+    /* Filter check */
+    if (!fh_filter_match(oifindex, saddr, daddr)) {
+        return NF_ACCEPT;
     }
 
     if (!g_ctx.silent) {
