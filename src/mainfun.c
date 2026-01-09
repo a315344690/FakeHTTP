@@ -130,7 +130,8 @@ int main(int argc, char *argv[])
     }
 
     out_iface_cap = 32;
-    g_ctx.out_iface_name = calloc(out_iface_cap, sizeof(*g_ctx.out_iface_name));
+    g_ctx.out_iface_name = calloc(out_iface_cap,
+                                  sizeof(*g_ctx.out_iface_name));
     if (!g_ctx.out_iface_name) {
         fprintf(stderr, "%s: calloc(): %s.\n", argv[0], strerror(errno));
         goto free_mem;
@@ -145,8 +146,8 @@ int main(int argc, char *argv[])
 
     plinfo_cnt = iface_cnt = out_iface_cnt = cidr_cnt = 0;
 
-    while ((opt = getopt(argc, argv, "0146ab:c:de:fgh:i:km:n:o:r:st:w:x:y:z")) !=
-           -1) {
+    while ((opt = getopt(argc, argv,
+                         "0146ab:c:de:fgh:i:km:n:o:r:st:w:x:y:z")) != -1) {
         switch (opt) {
             case '0':
                 g_ctx.inbound = 1;
@@ -203,8 +204,8 @@ int main(int argc, char *argv[])
             case 'c':
                 cidr_cnt++;
                 if (cidr_cnt >= cidr_cap - 1) {
-                    g_ctx.cidrs = realloc(
-                        g_ctx.cidrs, 2 * cidr_cap * sizeof(*g_ctx.cidrs));
+                    g_ctx.cidrs = realloc(g_ctx.cidrs,
+                                          2 * cidr_cap * sizeof(*g_ctx.cidrs));
                     if (!g_ctx.cidrs) {
                         fprintf(stderr, "%s: realloc(): %s.\n", argv[0],
                                 strerror(errno));

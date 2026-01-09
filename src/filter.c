@@ -219,7 +219,7 @@ int fh_filter_match(uint32_t oifindex, struct sockaddr *saddr,
             }
         }
         if (!iface_matched) {
-            return 0;  /* Interface not matched */
+            return 0;
         }
     }
 
@@ -234,9 +234,9 @@ int fh_filter_match(uint32_t oifindex, struct sockaddr *saddr,
             }
         }
         if (!cidr_matched) {
-            return 0;  /* CIDR not matched */
+            return 0;
         }
     }
 
-    return 1;  /* All specified conditions matched */
+    return 1;
 }

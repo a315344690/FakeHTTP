@@ -25,7 +25,7 @@
 
 /* CIDR entry structure */
 struct fh_cidr {
-    int family;                    /* AF_INET or AF_INET6 */
+    int family; /* AF_INET or AF_INET6 */
     union {
         uint32_t v4;
         uint8_t v6[16];
