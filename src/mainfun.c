@@ -76,7 +76,6 @@ static void print_usage(const char *name)
         "  -w <file>          write log to <file> instead of stderr\n"
         "\n"
         "Filter Options:\n"
-        "  -o <interface>     filter by outgoing interface\n"
         "  -c <cidr>          filter by CIDR (source or destination)\n"
         "\n"
         "Advanced Options:\n"
@@ -102,7 +101,7 @@ int main(int argc, char *argv[])
     unsigned long long tmp;
     int res, opt, exitcode;
     size_t plinfo_cap, iface_cap, plinfo_cnt, iface_cnt;
-    size_t out_iface_cap, out_iface_cnt, cidr_cap, cidr_cnt;
+    size_t cidr_cap, cidr_cnt;
     const char *iface_info, *direction_info, *ipproto_info;
 
     exitcode = EXIT_FAILURE;
@@ -129,14 +128,6 @@ int main(int argc, char *argv[])
         goto free_mem;
     }
 
-    out_iface_cap = 32;
-    g_ctx.out_iface_name = calloc(out_iface_cap,
-                                  sizeof(*g_ctx.out_iface_name));
-    if (!g_ctx.out_iface_name) {
-        fprintf(stderr, "%s: calloc(): %s.\n", argv[0], strerror(errno));
-        goto free_mem;
-    }
-
     cidr_cap = 32;
     g_ctx.cidrs = calloc(cidr_cap, sizeof(*g_ctx.cidrs));
     if (!g_ctx.cidrs) {
@@ -144,10 +135,10 @@ int main(int argc, char *argv[])
         goto free_mem;
     }
 
-    plinfo_cnt = iface_cnt = out_iface_cnt = cidr_cnt = 0;
+    plinfo_cnt = iface_cnt = cidr_cnt = 0;
 
-    while ((opt = getopt(argc, argv,
-                         "0146ab:c:de:fgh:i:km:n:o:r:st:w:x:y:z")) != -1) {
+    while ((opt = getopt(argc, argv, "0146ab:c:de:fgh:i:km:n:r:st:w:x:y:z")) !=
+           -1) {
         switch (opt) {
             case '0':
                 g_ctx.inbound = 1;
@@ -296,39 +287,6 @@ int main(int argc, char *argv[])
                     goto free_mem;
                 }
                 g_ctx.nfqnum = tmp;
-                break;
-
-            case 'o':
-                out_iface_cnt++;
-                if (out_iface_cnt >= out_iface_cap - 1) {
-                    g_ctx.out_iface_name = realloc(
-                        g_ctx.out_iface_name,
-                        2 * out_iface_cap * sizeof(*g_ctx.out_iface_name));
-                    if (!g_ctx.out_iface_name) {
-                        fprintf(stderr, "%s: realloc(): %s.\n", argv[0],
-                                strerror(errno));
-                        goto free_mem;
-                    }
-                    memset(&g_ctx.out_iface_name[out_iface_cap], 0,
-                           out_iface_cap * sizeof(*g_ctx.out_iface_name));
-                    out_iface_cap *= 2;
-                }
-
-                if (!optarg[0]) {
-                    fprintf(stderr, "%s: interface name cannot be empty.\n",
-                            argv[0]);
-                    print_usage(argv[0]);
-                    goto free_mem;
-                }
-
-                if (strlen(optarg) > IFNAMSIZ - 1) {
-                    fprintf(stderr, "%s: interface name is too long.\n",
-                            argv[0]);
-                    print_usage(argv[0]);
-                    goto free_mem;
-                }
-
-                g_ctx.out_iface_name[out_iface_cnt - 1] = optarg;
                 break;
 
             case 'r':
@@ -488,16 +446,10 @@ int main(int argc, char *argv[])
         goto cleanup_srcinfo;
     }
 
-    res = fh_filter_setup();
-    if (res < 0) {
-        EE(T(fh_filter_setup));
-        goto cleanup_rawsend;
-    }
-
     res = fh_nfq_setup();
     if (res < 0) {
         EE(T(fh_nfq_setup));
-        goto cleanup_filter;
+        goto cleanup_rawsend;
     }
 
     res = fh_nfrules_setup();
@@ -562,9 +514,6 @@ cleanup_nfrules:
 cleanup_nfq:
     fh_nfq_cleanup();
 
-cleanup_filter:
-    fh_filter_cleanup();
-
 cleanup_rawsend:
     fh_rawsend_cleanup();
 
@@ -584,10 +533,6 @@ free_mem:
 
     if (g_ctx.iface) {
         free(g_ctx.iface);
-    }
-
-    if (g_ctx.out_iface_name) {
-        free(g_ctx.out_iface_name);
     }
 
     if (g_ctx.cidrs) {

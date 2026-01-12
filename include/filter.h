@@ -39,14 +39,7 @@ struct fh_cidr {
 /* Parse CIDR string to structure */
 int fh_filter_parse_cidr(const char *cidr_str, struct fh_cidr *cidr);
 
-/* Initialize filter module */
-int fh_filter_setup(void);
-
-/* Cleanup filter module */
-void fh_filter_cleanup(void);
-
-/* Check if packet should be processed */
-int fh_filter_match(uint32_t oifindex, struct sockaddr *saddr,
-                    struct sockaddr *daddr);
+/* Check if packet should be processed (matches CIDR filter) */
+int fh_filter_match(struct sockaddr *saddr, struct sockaddr *daddr);
 
 #endif /* FH_FILTER_H */
