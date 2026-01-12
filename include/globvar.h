@@ -49,8 +49,6 @@ struct fh_context {
     /* -x */ uint32_t fwmask;
     /* -y */ int dynamic_pct;
     /* -z */ int use_iptables;
-    /* -o */ const char **out_iface_name;
-    /* -o */ uint32_t *out_iface_idx;
     /* -c */ struct fh_cidr *cidrs;
 };
 

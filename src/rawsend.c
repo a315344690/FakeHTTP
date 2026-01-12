@@ -318,8 +318,8 @@ void fh_rawsend_cleanup(void)
 }
 
 
-int fh_rawsend_handle(struct sockaddr_ll *sll, uint32_t oifindex,
-                      uint8_t *pkt_data, int pkt_len, int *modified)
+int fh_rawsend_handle(struct sockaddr_ll *sll, uint8_t *pkt_data, int pkt_len,
+                      int *modified)
 {
     uint32_t seq_new, ack_new;
     uint16_t ethertype;
@@ -357,7 +357,7 @@ int fh_rawsend_handle(struct sockaddr_ll *sll, uint32_t oifindex,
     }
 
     /* Filter check */
-    if (!fh_filter_match(oifindex, saddr, daddr)) {
+    if (!fh_filter_match(saddr, daddr)) {
         return NF_ACCEPT;
     }
 

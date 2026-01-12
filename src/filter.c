@@ -20,11 +20,8 @@
 #define _GNU_SOURCE
 #include "filter.h"
 
-#include <errno.h>
-#include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
-#include <net/if.h>
 #include <netinet/in.h>
 
 #include "globvar.h"
@@ -141,102 +138,22 @@ static int cidr_match_addr(struct fh_cidr *cidr, struct sockaddr *addr)
 }
 
 
-int fh_filter_setup(void)
+int fh_filter_match(struct sockaddr *saddr, struct sockaddr *daddr)
 {
-    size_t i, cnt;
-    unsigned int ifindex;
-
-    /* Count out_iface entries */
-    if (!g_ctx.out_iface_name) {
-        return 0;
-    }
-
-    for (cnt = 0; g_ctx.out_iface_name[cnt]; cnt++)
-        ;
-
-    if (!cnt) {
-        return 0;
-    }
-
-    /* Allocate index array */
-    g_ctx.out_iface_idx = calloc(cnt + 1, sizeof(*g_ctx.out_iface_idx));
-    if (!g_ctx.out_iface_idx) {
-        E("ERROR: calloc(): %s", strerror(errno));
-        return -1;
-    }
-
-    /* Convert interface names to indices */
-    for (i = 0; i < cnt; i++) {
-        ifindex = if_nametoindex(g_ctx.out_iface_name[i]);
-        if (!ifindex) {
-            E("ERROR: if_nametoindex(): %s: %s", g_ctx.out_iface_name[i],
-              strerror(errno));
-            free(g_ctx.out_iface_idx);
-            g_ctx.out_iface_idx = NULL;
-            return -1;
-        }
-        g_ctx.out_iface_idx[i] = ifindex;
-    }
-
-    return 0;
-}
-
-
-void fh_filter_cleanup(void)
-{
-    if (g_ctx.out_iface_idx) {
-        free(g_ctx.out_iface_idx);
-        g_ctx.out_iface_idx = NULL;
-    }
-}
-
-
-int fh_filter_match(uint32_t oifindex, struct sockaddr *saddr,
-                    struct sockaddr *daddr)
-{
-    int iface_specified, cidr_specified;
-    int iface_matched, cidr_matched;
     size_t i;
 
-    /* Check if filters are specified */
-    iface_specified = g_ctx.out_iface_name && g_ctx.out_iface_name[0];
-    cidr_specified = g_ctx.cidrs && g_ctx.cidrs[0].family;
-
-    /* If no filters specified, match all */
-    if (!iface_specified && !cidr_specified) {
+    /* If no CIDR filters specified, match all */
+    if (!g_ctx.cidrs || !g_ctx.cidrs[0].family) {
         return 1;
     }
 
-    /* Check outgoing interface (if specified) */
-    if (iface_specified) {
-        iface_matched = 0;
-        if (g_ctx.out_iface_idx && oifindex) {
-            for (i = 0; g_ctx.out_iface_idx[i]; i++) {
-                if (oifindex == g_ctx.out_iface_idx[i]) {
-                    iface_matched = 1;
-                    break;
-                }
-            }
-        }
-        if (!iface_matched) {
-            return 0;
+    /* Check if source or destination matches any CIDR */
+    for (i = 0; g_ctx.cidrs[i].family; i++) {
+        if (cidr_match_addr(&g_ctx.cidrs[i], saddr) ||
+            cidr_match_addr(&g_ctx.cidrs[i], daddr)) {
+            return 1;
         }
     }
 
-    /* Check CIDR (if specified) */
-    if (cidr_specified) {
-        cidr_matched = 0;
-        for (i = 0; g_ctx.cidrs[i].family; i++) {
-            if (cidr_match_addr(&g_ctx.cidrs[i], saddr) ||
-                cidr_match_addr(&g_ctx.cidrs[i], daddr)) {
-                cidr_matched = 1;
-                break;
-            }
-        }
-        if (!cidr_matched) {
-            return 0;
-        }
-    }
-
-    return 1;
+    return 0;
 }

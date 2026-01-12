@@ -46,6 +46,4 @@ struct fh_context g_ctx = {.exit = 0,
                            /* -x */ .fwmask = 0,
                            /* -y */ .dynamic_pct = 0,
                            /* -z */ .use_iptables = 0,
-                           /* -o */ .out_iface_name = NULL,
-                           /* -o */ .out_iface_idx = NULL,
                            /* -c */ .cidrs = NULL};
